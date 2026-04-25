@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<title>WebSwan Games 🦢 | Memory Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Mono:wght@400;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0e6296;
+    --teal: #1dc29e;
+    --gold: #ffd700;
+    --coral: #ff6b6b;
+    --white: #ffffff;
+    --dark: #071e2e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; background: #62e3df; }
+  
+  /* Main scrollable wrapper - single screen only now */
+  #game-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .game-screen {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(160deg, #62e3df 0%, #94dbeb 35%, #0e738a 70%, #62e3df 100%);
+    position: relative;
+  }
+  
+  /* MEMORY GAME */
+  .memory-header { background: linear-gradient(90deg, #0e738a 0%, #62e3df 55%, #94dbeb 100%); padding: clamp(6px, 2vh, 12px) clamp(12px, 4vw, 20px); text-align: center; border-bottom: 2px solid var(--teal); flex-shrink: 0; }
+  .memory-title { font-family: 'Playfair Display', serif; font-size: clamp(1rem, 5vw, 1.3rem); font-weight: 900; color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: 1px; }
+  .memory-stats { display: flex; justify-content: center; gap: clamp(8px, 4vw, 20px); padding: clamp(4px, 1.5vh, 8px) clamp(12px, 4vw, 20px); background: rgba(0,0,0,0.25); flex-shrink: 0; flex-wrap: wrap; }
+  .mem-stat { text-align: center; }
+  .mem-stat-label { font-size: clamp(10px, 2.5vw, 12px); text-transform: uppercase; color: var(--teal); font-weight: 700; }
+  .mem-stat-val { font-family: 'Space Mono', monospace; font-size: clamp(1rem, 4vw, 1.3rem); color: var(--white); font-weight: 700; }
+  .mem-stat-val.warning { color: #ff9f4a; }
+  .mem-stat-val.danger { color: #ff6b6b; animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  
+  .mem-difficulty { display: flex; justify-content: center; gap: clamp(6px, 2vw, 12px); padding: clamp(4px, 1vh, 8px); flex-shrink: 0; flex-wrap: wrap; }
+  .diff-btn { padding: clamp(4px, 1.5vh, 8px) clamp(10px, 3vw, 16px); border-radius: 30px; border: 2px solid rgba(56,185,201,0.3); background: rgba(56,185,201,0.08); color: rgba(255,255,255,0.5); font-size: clamp(11px, 2.5vw, 13px); font-weight: 700; cursor: pointer; }
+  .diff-btn.active { background: var(--teal); border-color: var(--teal); color: var(--dark); }
+  .memory-grid-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: clamp(8px, 2vh, 16px); overflow: auto; min-height: 200px; }
+  .memory-grid { display: grid; gap: clamp(6px, 2vw, 10px); width: 100%; max-width: min(500px, 90vw); margin: auto; grid-template-columns: repeat(4, 1fr); }
+  .mem-card { aspect-ratio: 1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.45s; border-radius: clamp(8px, 2vw, 14px); }
+  .mem-card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; inset: 0; border-radius: clamp(8px, 2vw, 14px); backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
+  .card-back { background: linear-gradient(135deg, #0a2a42, #0e6296); border: 2px solid rgba(170,242,242,0.4); }
+  .card-back::before { content: '🦢'; font-size: clamp(1.5rem, 6vw, 2rem); opacity: 0.6; }
+  .card-front { background: linear-gradient(135deg, #0e3a5a, #0e7a9a); border: 2px solid rgba(29,194,158,0.7); transform: rotateY(180deg); }
+  .card-emoji { font-size: clamp(1.5rem, 6vw, 2rem); }
+  .card-label { font-size: clamp(8px, 2vw, 11px); font-weight: 700; color: var(--gold); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 20px; }
+  .memory-controls { display: flex; gap: clamp(8px, 3vw, 16px); padding: clamp(8px, 2vh, 16px); flex-shrink: 0; }
+  .mem-ctrl-btn { flex: 1; padding: clamp(8px, 2vh, 12px); border: none; border-radius: 30px; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, var(--teal), var(--navy)); color: white; font-size: clamp(11px, 3vw, 14px); }
+  .mem-ctrl-btn.stop-btn { background: linear-gradient(135deg, #e67e22, #c0392b); }
+  #memory-win { position: fixed; inset: 0; background: rgba(10,31,53,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  #memory-win.show { opacity: 1; pointer-events: all; }
+  .win-card { background: linear-gradient(135deg, #071e2e, #0e6296); border: 3px solid var(--gold); border-radius: 24px; padding: clamp(16px, 5vw, 32px); text-align: center; max-width: 90%; }
+  .win-btn { background: var(--gold); border: none; padding: 12px 24px; border-radius: 40px; font-weight: bold; margin-top: 16px; cursor: pointer; font-size: 1rem; }
+  #memory-lose { position: fixed; inset: 0; background: rgba(10,31,53,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  #memory-lose.show { opacity: 1; pointer-events: all; }
+  .lose-card { background: linear-gradient(135deg, #4a0e0e, #8b2c2c); border: 3px solid #ff6b6b; border-radius: 24px; padding: clamp(16px, 5vw, 32px); text-align: center; max-width: 90%; }
+  
+  @media (max-width: 550px) {
+    .letter-tile { width: 42px; height: 50px; font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+<div id="game-wrapper">
+  <!-- MEMORY GAME ONLY -->
+  <div class="game-screen" id="memory-screen">
+    <div class="memory-header"><div class="memory-title">🎨 <span style="color: #FFD700; font-weight: 900;">Memory Game</span></div></div>
+    <div class="memory-stats">
+      <div class="mem-stat"><div class="mem-stat-label">Moves</div><div class="mem-stat-val" id="mem-moves">0</div></div>
+      <div class="mem-stat"><div class="mem-stat-label">Pairs</div><div class="mem-stat-val" id="mem-pairs">0/12</div></div>
+      <div class="mem-stat"><div class="mem-stat-label">Time Left</div><div class="mem-stat-val" id="mem-timer">120s</div></div>
+      <div class="mem-stat"><div class="mem-stat-label">Best</div><div class="mem-stat-val" id="mem-best">--</div></div>
+    </div>
+    <div class="mem-difficulty">
+      <button class="diff-btn" onclick="setDifficulty('easy', this)">Easy</button>
+      <button class="diff-btn active" onclick="setDifficulty('medium', this)">Medium</button>
+      <button class="diff-btn" onclick="setDifficulty('hard', this)">Hard</button>
+    </div>
+    <div class="memory-grid-wrap"><div class="memory-grid" id="memory-grid"></div></div>
+    <div class="memory-controls">
+      <button class="mem-ctrl-btn" onclick="initMemoryGame()">🔄 New Game</button>
+      <button class="mem-ctrl-btn" onclick="showHint()">💡 Hint</button>
+      <button class="mem-ctrl-btn stop-btn" onclick="stopMemoryGame()">⏹️ End Game</button>
+    </div>
+    <div id="memory-win"><div class="win-card"><span class="win-trophy">🏆</span><div class="win-title">You Won!</div><div class="win-stats" id="win-stats"></div><button class="win-btn" onclick="initMemoryGame()">Play Again</button></div></div>
+    <div id="memory-lose"><div class="lose-card"><span class="lose-icon">⏰</span><div class="lose-title">Time's Up!</div><div class="lose-stats" id="lose-stats"></div><button class="win-btn" onclick="initMemoryGame()">Try Again</button></div></div>
+  </div>
+</div>
+
+<script>
+// ========== MEMORY GAME WITH 120 SECOND TIMER ==========
+const memImages = [{emoji:"🎷", label:"Sax"},{emoji:"🎸", label:"Guitar"},{emoji:"🎺", label:"Trumpet"},{emoji:"🥁", label:"Drums"},{emoji:"🎹", label:"Piano"},{emoji:"🎻", label:"Violin"},{emoji:"🖌️", label:"Brush"},{emoji:"🎨", label:"Palette"},{emoji:"🖼️", label:"Canvas"},{emoji:"✏️", label:"Sketch"},{emoji:"🎭", label:"Theater"},{emoji:"📷", label:"Camera"}];
+let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memTimeLeft = 120, memTimer = null, memLock = false, currentDifficulty = 'medium';
+
+// Load best score from localStorage
+function loadBestScores() { 
+  const best = localStorage.getItem('mem_best'); 
+  if (best) document.getElementById('mem-best').textContent = best; 
+  else document.getElementById('mem-best').textContent = '--';
+}
+
+// Save best score (based on moves, lower is better)
+function saveBestScore(moves, timeLeft) {
+  const currentBest = localStorage.getItem('mem_best');
+  const bestMoves = currentBest ? parseInt(currentBest) : Infinity;
+  if (moves < bestMoves) {
+    localStorage.setItem('mem_best', moves);
+    document.getElementById('mem-best').textContent = moves;
+    return true;
+  }
+  return false;
+}
+
+// Stop game (end timer)
+function stopMemoryGame() { 
+  if (memTimer) clearInterval(memTimer); 
+  memTimer = null; 
+  memLock = true; 
+  const msg = document.createElement('div'); 
+  msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#071e2e;color:gold;padding:20px;border-radius:20px;border:2px solid gold;z-index:200;text-align:center;font-weight:bold;'; 
+  msg.innerHTML = '⏹️ Game Ended<br><button onclick="this.parentElement.remove(); initMemoryGame();" style="margin-top:10px;padding:8px 20px;background:gold;border:none;border-radius:20px;cursor:pointer;">New Game</button>'; 
+  document.body.appendChild(msg); 
+}
+
+// Update timer display with color coding
+function updateTimerDisplay() {
+  const timerEl = document.getElementById('mem-timer');
+  timerEl.textContent = memTimeLeft + 's';
+  if (memTimeLeft <= 10) {
+    timerEl.classList.add('danger');
+    timerEl.classList.remove('warning');
+  } else if (memTimeLeft <= 30) {
+    timerEl.classList.add('warning');
+    timerEl.classList.remove('danger');
+  } else {
+    timerEl.classList.remove('warning', 'danger');
+  }
+}
+
+// Initialize or reset game
+function initMemoryGame() { 
+  if (memTimer) clearInterval(memTimer); 
+  memMatched = 0; 
+  memMoves = 0; 
+  memTimeLeft = 120; 
+  memFlipped = []; 
+  memLock = false; 
+  document.getElementById('mem-moves').textContent = '0'; 
+  document.getElementById('mem-pairs').textContent = '0/12'; 
+  updateTimerDisplay();
+  document.getElementById('memory-win').classList.remove('show');
+  document.getElementById('memory-lose').classList.remove('show');
+  
+  // Shuffle cards
+  let deck = [...memImages, ...memImages]; 
+  for (let i = deck.length - 1; i > 0; i--) { 
+    const j = Math.floor(Math.random() * (i + 1)); 
+    [deck[i], deck[j]] = [deck[j], deck[i]]; 
+  } 
+  memCards = deck.map((c, idx) => ({ ...c, id: idx, matched: false, flipped: false })); 
+  renderMemGrid(); 
+  
+  // Start countdown timer
+  memTimer = setInterval(() => { 
+    if (!memLock && memTimeLeft > 0 && memMatched < 12) {
+      memTimeLeft--; 
+      updateTimerDisplay();
+      if (memTimeLeft === 0) {
+        clearInterval(memTimer);
+        memTimer = null;
+        memLock = true;
+        // Show time's up message
+        const stats = document.getElementById('lose-stats');
+        stats.innerHTML = `Pairs matched: ${memMatched}/12<br>Moves: ${memMoves}`;
+        document.getElementById('memory-lose').classList.add('show');
+        spawnConfetti(false);
+      }
+    } else if (memMatched === 12) {
+      // Game already won, timer will be cleared in win condition
+    }
+  }, 1000); 
+}
+
+function renderMemGrid() { 
+  const grid = document.getElementById('memory-grid'); 
+  // Adjust grid columns based on difficulty
+  if (currentDifficulty === 'easy') {
+    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  } else if (currentDifficulty === 'hard') {
+    grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+  } else {
+    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  }
+  grid.innerHTML = ''; 
+  memCards.forEach((card, i) => { 
+    const el = document.createElement('div'); 
+    el.className = 'mem-card' + (card.flipped ? ' flipped' : ''); 
+    el.onclick = () => flipMemCard(i); 
+    el.innerHTML = `<div class="card-face card-back"></div><div class="card-face card-front"><div class="card-emoji">${card.emoji}</div><div class="card-label">${card.label}</div></div>`; 
+    grid.appendChild(el); 
+  }); 
+}
+
+function flipMemCard(idx) { 
+  if (memLock || memCards[idx].flipped || memCards[idx].matched || memTimeLeft <= 0) return; 
+  memCards[idx].flipped = true; 
+  memFlipped.push(idx); 
+  updateMemUI(idx); 
+  
+  if (memFlipped.length === 2) { 
+    memMoves++; 
+    document.getElementById('mem-moves').textContent = memMoves; 
+    memLock = true; 
+    const [a, b] = memFlipped; 
+    if (memCards[a].label === memCards[b].label) { 
+      // Match found
+      memCards[a].matched = true; 
+      memCards[b].matched = true; 
+      memMatched++; 
+      document.getElementById('mem-pairs').textContent = `${memMatched}/12`; 
+      updateMemUI(a); 
+      updateMemUI(b); 
+      memFlipped = []; 
+      memLock = false; 
+      if (memMatched === 12) { 
+        clearInterval(memTimer); 
+        memTimer = null;
+        const timeUsed = 120 - memTimeLeft;
+        const wonNewBest = saveBestScore(memMoves, timeUsed);
+        document.getElementById('win-stats').innerHTML = `Moves: ${memMoves} | Time: ${timeUsed}s${wonNewBest ? '<br>🎉 NEW BEST SCORE! 🎉' : ''}`; 
+        document.getElementById('memory-win').classList.add('show'); 
+        spawnConfetti(true); 
+      } 
+    } else { 
+      // No match - delay flip back
+      setTimeout(() => { 
+        memCards[a].flipped = false; 
+        memCards[b].flipped = false; 
+        updateMemUI(a); 
+        updateMemUI(b); 
+        memFlipped = []; 
+        memLock = false; 
+      }, 800); 
+    } 
+  } 
+}
+
+function updateMemUI(idx) { 
+  const el = document.querySelector(`.mem-card:nth-child(${idx+1})`); 
+  if (el) el.className = 'mem-card' + (memCards[idx].flipped ? ' flipped' : ''); 
+}
+
+function showHint() { 
+  if (memLock || memTimeLeft <= 0) return; 
+  // Find two unpaired, unflipped cards
+  const unpaired = memCards.map((c, i) => ({ c, i })).filter(x => !x.c.matched && !x.c.flipped); 
+  if (unpaired.length < 2) return; 
+  // Temporarily flip the first two unpaired cards
+  const hintIndices = [unpaired[0].i, unpaired[1].i];
+  hintIndices.forEach(i => { 
+    memCards[i].flipped = true; 
+    updateMemUI(i); 
+  }); 
+  memLock = true; 
+  setTimeout(() => { 
+    hintIndices.forEach(i => { 
+      if (!memCards[i].matched) { 
+        memCards[i].flipped = false; 
+        updateMemUI(i); 
+      } 
+    }); 
+    memLock = false; 
+  }, 1000); 
+}
+
+function setDifficulty(diff, btn) { 
+  currentDifficulty = diff;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active')); 
+  btn.classList.add('active'); 
+  
+  // Adjust grid size based on difficulty
+  const grid = document.getElementById('memory-grid');
+  if (diff === 'easy') {
+    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  } else if (diff === 'hard') {
+    grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+  } else {
+    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  }
+  
+  initMemoryGame(); 
+}
+
+function spawnConfetti(isWin) { 
+  const colors = isWin ? ['#ffd700', '#62e3df', '#ff6b6b', '#1dc29e'] : ['#ff6b6b', '#ff9f4a'];
+  for (let i = 0; i < (isWin ? 80 : 40); i++) { 
+    setTimeout(() => { 
+      const c = document.createElement('div'); 
+      c.style.cssText = `position:fixed;width:10px;height:10px;left:${15+Math.random()*70}%;top:30%;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random() > 0.5 ? '50%' : '0'};animation:confettiFall 1.6s forwards;pointer-events:none;z-index:999;`; 
+      document.body.appendChild(c); 
+      setTimeout(() => c.remove(), 1700); 
+    }, i * 30); 
+  } 
+}
+
+// Add confetti animation keyframes if not exists
+if (!document.querySelector('#confetti-style')) {
+  const style = document.createElement('style');
+  style.id = 'confetti-style';
+  style.textContent = `
+    @keyframes confettiFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(80vh) rotate(720deg); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Initialize on page load
+loadBestScores();
+initMemoryGame();
+</script>
+</body>
+</html>
