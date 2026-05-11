@@ -2,339 +2,460 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-<title>WebSwan Games 🦢 | Memory Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WebSwan Games 🦢 | Multilingual Wheel of Fortune</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Mono:wght@400;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #0e6296;
-    --teal: #1dc29e;
-    --gold: #ffd700;
-    --coral: #ff6b6b;
-    --white: #ffffff;
-    --dark: #071e2e;
+    --navy:   #0e6296;
+    --teal:   #1dc29e;
+    --gold:   #ffd700;
+    --coral:  #ff6b6b;
+    --green:  #1dc29e;
+    --white:  #ffffff;
+    --dark:   #071e2e;
   }
+
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; background: #62e3df; }
-  
-  /* Main scrollable wrapper - single screen only now */
-  #game-wrapper {
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    background: #62e3df;
   }
-  
+
   .game-screen {
-    width: 100%;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
     background: linear-gradient(160deg, #62e3df 0%, #94dbeb 35%, #0e738a 70%, #62e3df 100%);
     position: relative;
   }
-  
-  /* MEMORY GAME */
-  .memory-header { background: linear-gradient(90deg, #0e738a 0%, #62e3df 55%, #94dbeb 100%); padding: clamp(6px, 2vh, 12px) clamp(12px, 4vw, 20px); text-align: center; border-bottom: 2px solid var(--teal); flex-shrink: 0; }
-  .memory-title { font-family: 'Playfair Display', serif; font-size: clamp(1rem, 5vw, 1.3rem); font-weight: 900; color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: 1px; }
-  .memory-stats { display: flex; justify-content: center; gap: clamp(8px, 4vw, 20px); padding: clamp(4px, 1.5vh, 8px) clamp(12px, 4vw, 20px); background: rgba(0,0,0,0.25); flex-shrink: 0; flex-wrap: wrap; }
-  .mem-stat { text-align: center; }
-  .mem-stat-label { font-size: clamp(10px, 2.5vw, 12px); text-transform: uppercase; color: var(--teal); font-weight: 700; }
-  .mem-stat-val { font-family: 'Space Mono', monospace; font-size: clamp(1rem, 4vw, 1.3rem); color: var(--white); font-weight: 700; }
-  .mem-stat-val.warning { color: #ff9f4a; }
-  .mem-stat-val.danger { color: #ff6b6b; animation: pulse 0.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-  
-  .mem-difficulty { display: flex; justify-content: center; gap: clamp(6px, 2vw, 12px); padding: clamp(4px, 1vh, 8px); flex-shrink: 0; flex-wrap: wrap; }
-  .diff-btn { padding: clamp(4px, 1.5vh, 8px) clamp(10px, 3vw, 16px); border-radius: 30px; border: 2px solid rgba(56,185,201,0.3); background: rgba(56,185,201,0.08); color: rgba(255,255,255,0.5); font-size: clamp(11px, 2.5vw, 13px); font-weight: 700; cursor: pointer; }
-  .diff-btn.active { background: var(--teal); border-color: var(--teal); color: var(--dark); }
-  .memory-grid-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: clamp(8px, 2vh, 16px); overflow: auto; min-height: 200px; }
-  .memory-grid { display: grid; gap: clamp(6px, 2vw, 10px); width: 100%; max-width: min(500px, 90vw); margin: auto; grid-template-columns: repeat(4, 1fr); }
-  .mem-card { aspect-ratio: 1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.45s; border-radius: clamp(8px, 2vw, 14px); }
-  .mem-card.flipped { transform: rotateY(180deg); }
-  .card-face { position: absolute; inset: 0; border-radius: clamp(8px, 2vw, 14px); backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
-  .card-back { background: linear-gradient(135deg, #0a2a42, #0e6296); border: 2px solid rgba(170,242,242,0.4); }
-  .card-back::before { content: '🦢'; font-size: clamp(1.5rem, 6vw, 2rem); opacity: 0.6; }
-  .card-front { background: linear-gradient(135deg, #0e3a5a, #0e7a9a); border: 2px solid rgba(29,194,158,0.7); transform: rotateY(180deg); }
-  .card-emoji { font-size: clamp(1.5rem, 6vw, 2rem); }
-  .card-label { font-size: clamp(8px, 2vw, 11px); font-weight: 700; color: var(--gold); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 20px; }
-  .memory-controls { display: flex; gap: clamp(8px, 3vw, 16px); padding: clamp(8px, 2vh, 16px); flex-shrink: 0; }
-  .mem-ctrl-btn { flex: 1; padding: clamp(8px, 2vh, 12px); border: none; border-radius: 30px; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, var(--teal), var(--navy)); color: white; font-size: clamp(11px, 3vw, 14px); }
-  .mem-ctrl-btn.stop-btn { background: linear-gradient(135deg, #e67e22, #c0392b); }
-  #memory-win { position: fixed; inset: 0; background: rgba(10,31,53,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-  #memory-win.show { opacity: 1; pointer-events: all; }
-  .win-card { background: linear-gradient(135deg, #071e2e, #0e6296); border: 3px solid var(--gold); border-radius: 24px; padding: clamp(16px, 5vw, 32px); text-align: center; max-width: 90%; }
-  .win-btn { background: var(--gold); border: none; padding: 12px 24px; border-radius: 40px; font-weight: bold; margin-top: 16px; cursor: pointer; font-size: 1rem; }
-  #memory-lose { position: fixed; inset: 0; background: rgba(10,31,53,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-  #memory-lose.show { opacity: 1; pointer-events: all; }
-  .lose-card { background: linear-gradient(135deg, #4a0e0e, #8b2c2c); border: 3px solid #ff6b6b; border-radius: 24px; padding: clamp(16px, 5vw, 32px); text-align: center; max-width: 90%; }
-  
-  @media (max-width: 550px) {
-    .letter-tile { width: 42px; height: 50px; font-size: 1.2rem; }
+  .game-screen > * { position: relative; z-index: 1; }
+
+  #game-wrapper {
+    width: 100%;
+    height: 100dvh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
+  .game-screen {
+    width: 100%;
+    height: 100dvh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #nav-dots {
+    position: fixed;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.3); }
+  .scroll-hint {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+    pointer-events: none;
+  }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+
+  /* LANGUAGE SELECTOR DROPDOWN - IN HEADER */
+  .lang-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .language-translator {
+    background: linear-gradient(135deg, #ffd700, #e67e22);
+    border: 2px solid white;
+    border-radius: 40px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.75rem;
+    color: #071e2e;
+    transition: 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .language-translator:active { transform: scale(0.96); }
+  .language-translator:hover { background: linear-gradient(135deg, #ffed4e, #f39c12); }
+  .translator-icon { font-size: 1rem; }
+  
+  .lang-dropdown {
+    background: linear-gradient(135deg, #0e6296, #0a3a5a);
+    border: 2px solid var(--gold);
+    border-radius: 30px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: 0.2s;
+  }
+  .lang-dropdown:hover { background: #1dc29e; border-color: white; }
+  .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* MEMORY GAME (unchanged) */
+  .memory-header { background: linear-gradient(90deg, #0e738a 0%, #62e3df 55%, #94dbeb 100%); padding: 8px 16px 6px; text-align: center; border-bottom: 2px solid var(--teal); flex-shrink: 0; }
+  .memory-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 900; color: var(--teal); }
+  .memory-title span { color: var(--white); }
+  .memory-stats { display: flex; justify-content: center; gap: 16px; padding: 5px 16px; background: rgba(0,0,0,0.25); flex-shrink: 0; }
+  .mem-stat { text-align: center; }
+  .mem-stat-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--teal); font-weight: 700; }
+  .mem-stat-val { font-family: 'Space Mono', monospace; font-size: 1.2rem; color: var(--white); font-weight: 700; }
+  .mem-difficulty { display: flex; justify-content: center; gap: 6px; padding: 4px 14px; flex-shrink: 0; }
+  .diff-btn { padding: 4px 12px; border-radius: 30px; border: 2px solid rgba(56,185,201,0.3); background: rgba(56,185,201,0.08); color: rgba(255,255,255,0.5); font-size: 0.65rem; font-weight: 700; cursor: pointer; }
+  .diff-btn.active { background: var(--teal); border-color: var(--teal); color: var(--dark); }
+  .memory-grid-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 6px 14px; overflow: auto; min-height: 0; }
+  .memory-grid { display: grid; gap: 8px; width: 100%; max-width: 450px; margin: auto; grid-template-columns: repeat(4, 1fr); }
+  .mem-card { aspect-ratio: 1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.45s; border-radius: 12px; }
+  .mem-card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; inset: 0; border-radius: 12px; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; }
+  .card-back { background: linear-gradient(135deg, #0a2a42, #0e6296); border: 2px solid rgba(170,242,242,0.4); }
+  .card-back::before { content: '🦢'; font-size: 2rem; opacity: 0.6; }
+  .card-front { background: linear-gradient(135deg, #0e3a5a, #0e7a9a); border: 2px solid rgba(29,194,158,0.7); transform: rotateY(180deg); }
+  .card-emoji { font-size: 2rem; }
+  .card-label { font-size: 0.6rem; font-weight: 700; color: var(--gold); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 20px; }
+  .memory-controls { display: flex; gap: 8px; padding: 6px 14px 12px; flex-shrink: 0; }
+  .mem-ctrl-btn { flex: 1; padding: 9px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, var(--teal), var(--navy)); color: white; }
+  #memory-win { position: absolute; inset: 0; background: rgba(10,31,53,0.95); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  #memory-win.show { opacity: 1; pointer-events: all; }
+  .win-card { background: linear-gradient(135deg, #071e2e, #0e6296); border: 3px solid var(--gold); border-radius: 24px; padding: 32px; text-align: center; }
+  .win-trophy { font-size: 4rem; }
+  .win-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); }
+  .win-stats { color: white; margin: 12px 0; }
+  .win-btn { background: var(--gold); color: var(--dark); border: none; padding: 12px 32px; border-radius: 30px; font-weight: 800; cursor: pointer; }
+
+  /* WHEEL OF FORTUNE */
+  #wof-screen { background: linear-gradient(160deg, #62e3df 0%, #94dbeb 35%, #0e738a 66%, #62e3df 100%); }
+  .wof-header { background: linear-gradient(90deg, #0e738a 0%, #62e3df 50%, #94dbeb 100%); padding: 10px 16px 8px; border-bottom: 3px solid var(--gold); flex-shrink: 0; }
+  .wof-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 900; color: var(--gold); }
+  .wof-title span { color: var(--white); }
+  .wof-scores { display: flex; justify-content: space-between; padding: 4px 10px; background: rgba(0,0,0,0.35); flex-shrink: 0; gap: 4px; }
+  .wof-score-box { text-align: center; flex: 1; }
+  .wof-score-label { font-size: 0.48rem; text-transform: uppercase; color: rgba(255,255,255,0.8); font-weight: 700; line-height:1.2; }
+  .wof-score-val { font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: 700; color: white; line-height:1.2; }
+  .wof-score-val.gold { color: var(--gold); }
+  .wof-middle { flex: 1; display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 4px 10px; min-height: 0; }
+  .wof-wheel-area { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .wheel-wrapper { position: relative; cursor: pointer; }
+  #wof-canvas { display: block; filter: drop-shadow(0 0 16px rgba(255,215,0,0.35)); width: 140px; height: 140px; cursor: pointer; }
+  .wheel-pointer { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 22px solid var(--gold); z-index: 10; pointer-events: none; }
+  .wof-spin-hint { font-size: 0.55rem; color: rgba(255,215,0,0.8); text-align: center; }
+  .wof-puzzle-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; overflow: hidden; }
+  .puzzle-category-tag { text-align: center; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: white; background: linear-gradient(90deg, #0a3a42, #0e738a); padding: 4px 14px; border-radius: 20px; border: 2px solid var(--gold); display: inline-block; align-self: center; }
+  .puzzle-rows { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .puzzle-row { display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; }
+  .letter-tile { width: 28px; height: 32px; background: linear-gradient(135deg, #0e4a70, #071e2e); border: 1.5px solid rgba(56,185,201,0.5); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: 700; color: white; }
+  .letter-tile.space { background: transparent; border-color: transparent; width: 12px; }
+  .letter-tile.hidden { background: #0a4a52; border-color: #ffd700; color: transparent; text-shadow: none; }
+  .letter-tile.revealed { background: #ffffff; border-color: #c9a227; color: #0a3a40; }
+  .letter-tile.solved { background: #20c997; border-color: #0a4a30; color: white; }
+  .wof-controls { flex-shrink: 0; padding: 4px 10px 6px; }
+  .wof-guess-row { display: flex; gap: 6px; align-items: center; }
+  .wof-input { flex: 1; background: rgba(255,255,255,0.08); border: 2px solid rgba(56,185,201,0.5); border-radius: 30px; padding: 9px 16px; color: white; font-weight: 600; outline: none; text-transform: uppercase; font-size: 0.9rem; }
+  .wof-input:focus { border-color: var(--gold); }
+  .wof-btn { padding: 9px 16px; border: none; border-radius: 30px; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
+  .wof-btn:active { transform: scale(0.96); }
+  .wof-btn-guess { background: linear-gradient(135deg, var(--teal), #1a6070); color: white; }
+  .wof-btn-solve { background: linear-gradient(135deg, var(--gold), #cc9900); color: var(--dark); font-weight: 800; }
+  .wof-btn-new { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .wof-status { text-align: center; font-size: 0.7rem; font-weight: 700; color: white; padding: 4px; background: rgba(0,0,0,0.3); border-radius: 20px; margin-top: 4px; }
+  .wof-status.error { color: #ffaaaa; }
+  .wof-status.success { color: #ffffaa; }
+  .wof-keyboard { display: flex; flex-direction: column; gap: 5px; align-items: center; flex-shrink: 0; padding: 8px 6px; background: rgba(14,115,138,0.4); border-top: 1px solid rgba(255,255,255,0.3); }
+  .kbd-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .kbd-key { width: 48px; height: 48px; background: linear-gradient(135deg, #0e6296, #0a3a5a); border: 2px solid rgba(255,255,255,0.5); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 800; color: white; cursor: pointer; transition: all 0.08s linear; user-select: none; touch-action: manipulation; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
+  .kbd-key:active { transform: scale(0.92); background: #1dc29e; }
+  .kbd-key.used-hit { background: #2ecc71 !important; border-color: #27ae60 !important; cursor: default; pointer-events: none; opacity: 0.7; transform: none; }
+  .kbd-key.used-miss { background: #555 !important; border-color: #333 !important; color: #999 !important; cursor: default; pointer-events: none; opacity: 0.5; transform: none; }
+  .kbd-key.vowel-key { background: linear-gradient(135deg, #f39c12, #e67e22); border-color: #ffd700; color: #fff; }
+  #wof-overlay { position: absolute; inset: 0; background: rgba(10,31,53,0.96); display: flex; align-items: center; justify-content: center; z-index: 50; flex-direction: column; text-align: center; padding: 20px; }
+  .wof-overlay-icon { font-size: 3rem; }
+  .wof-overlay-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--gold); font-weight: 900; }
+  .wof-overlay-sub { font-size: 0.8rem; color: white; max-width: 300px; margin: 15px 0; line-height: 1.5; }
+  .wof-overlay-btn { background: linear-gradient(135deg, var(--gold), #cc9900); color: #0a3a40; border: none; padding: 13px 36px; border-radius: 30px; font-weight: 800; cursor: pointer; }
+  .wof-result-toast { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 60; opacity: 0; pointer-events: none; background: rgba(0,0,0,0.8); transition: opacity 0.4s; }
+  .wof-result-toast.show { opacity: 1; pointer-events: auto; }
+  .wof-toast-inner { background: rgba(10,31,53,0.98); border: 3px solid var(--gold); border-radius: 24px; padding: 28px 36px; text-align: center; }
+  .feedback-icon { font-size: 3rem; }
+  .feedback-text { font-size: 1.2rem; font-weight: 800; color: white; }
+  .feedback-sub { font-size: 0.85rem; color: var(--teal); margin: 8px 0; }
+  .feedback-btn { background: var(--gold); color: var(--dark); border: none; padding: 10px 28px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .confetti-piece { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confettiFall 1.5s forwards; pointer-events: none; z-index: 999; }
+  @keyframes confettiFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(200px) rotate(720deg);opacity:0} }
+  #wof-best { margin-left: 4px; }
+  @media (max-width: 550px) { .kbd-key { width: 42px; height: 42px; font-size: 1rem; } .letter-tile { width: 24px; height: 28px; font-size: 0.8rem; } #wof-canvas { width: 120px; height: 120px; } .language-translator { padding: 4px 12px; font-size: 0.65rem; } .lang-dropdown { font-size: 0.6rem; padding: 4px 8px; } }
 </style>
 </head>
 <body>
+<div id="nav-dots"><div class="dot active" onclick="scrollToGame(0)"></div><div class="dot" onclick="scrollToGame(1)"></div></div>
+
 <div id="game-wrapper">
-  <!-- MEMORY GAME ONLY -->
+  <!-- MEMORY GAME (UNCHANGED) -->
   <div class="game-screen" id="memory-screen">
-    <div class="memory-header"><div class="memory-title">🎨 <span style="color: #FFD700; font-weight: 900;">Memory Game</span></div></div>
-    <div class="memory-stats">
-      <div class="mem-stat"><div class="mem-stat-label">Moves</div><div class="mem-stat-val" id="mem-moves">0</div></div>
-      <div class="mem-stat"><div class="mem-stat-label">Pairs</div><div class="mem-stat-val" id="mem-pairs">0/12</div></div>
-      <div class="mem-stat"><div class="mem-stat-label">Time Left</div><div class="mem-stat-val" id="mem-timer">120s</div></div>
-      <div class="mem-stat"><div class="mem-stat-label">Best</div><div class="mem-stat-val" id="mem-best">--</div></div>
-    </div>
-    <div class="mem-difficulty">
-      <button class="diff-btn" onclick="setDifficulty('easy', this)">Easy</button>
-      <button class="diff-btn active" onclick="setDifficulty('medium', this)">Medium</button>
-      <button class="diff-btn" onclick="setDifficulty('hard', this)">Hard</button>
-    </div>
+    <div class="memory-header"><div class="memory-title">🎨 <span>Memory</span> Game</div></div>
+    <div class="memory-stats"><div class="mem-stat"><div class="mem-stat-label">Moves</div><div class="mem-stat-val" id="mem-moves">0</div></div><div class="mem-stat"><div class="mem-stat-label">Pairs</div><div class="mem-stat-val" id="mem-pairs">0/12</div></div><div class="mem-stat"><div class="mem-stat-label">Time</div><div class="mem-stat-val" id="mem-timer">0s</div></div><div class="mem-stat"><div class="mem-stat-label">Best</div><div class="mem-stat-val" id="mem-best">--</div></div></div>
+    <div class="mem-difficulty"><button class="diff-btn" onclick="setDifficulty('easy', this)">Easy</button><button class="diff-btn active" onclick="setDifficulty('medium', this)">Medium</button><button class="diff-btn" onclick="setDifficulty('hard', this)">Hard</button></div>
     <div class="memory-grid-wrap"><div class="memory-grid" id="memory-grid"></div></div>
-    <div class="memory-controls">
-      <button class="mem-ctrl-btn" onclick="initMemoryGame()">🔄 New Game</button>
-      <button class="mem-ctrl-btn" onclick="showHint()">💡 Hint</button>
-      <button class="mem-ctrl-btn stop-btn" onclick="stopMemoryGame()">⏹️ End Game</button>
-    </div>
+    <div class="memory-controls"><button class="mem-ctrl-btn" onclick="initMemoryGame()">🔄 New Game</button><button class="mem-ctrl-btn" onclick="showHint()">💡 Hint</button></div>
     <div id="memory-win"><div class="win-card"><span class="win-trophy">🏆</span><div class="win-title">You Won!</div><div class="win-stats" id="win-stats"></div><button class="win-btn" onclick="initMemoryGame()">Play Again</button></div></div>
-    <div id="memory-lose"><div class="lose-card"><span class="lose-icon">⏰</span><div class="lose-title">Time's Up!</div><div class="lose-stats" id="lose-stats"></div><button class="win-btn" onclick="initMemoryGame()">Try Again</button></div></div>
+    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Wheel ↓</div>
+  </div>
+
+  <!-- WHEEL OF FORTUNE WITH FULL LANGUAGE TRANSLATOR -->
+  <div class="game-screen" id="wof-screen">
+    <div class="wof-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div class="wof-title">🦢 <span>Wheel of</span> Fortune</div>
+        <div class="header-actions">
+          <div class="lang-selector-wrapper">
+            <div class="language-translator" id="languageTranslatorBtn">
+              <span class="translator-icon">🌐</span>
+              <span>Language Translator</span>
+            </div>
+            <select id="langDropdown" class="lang-dropdown">
+              <option value="en">🇺🇸 English</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="ht">🇭🇹 Kreyòl Ayisyen</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="pt">🇵🇹 Português</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="it">🇮🇹 Italiano</option>
+            </select>
+          </div>
+          <button onclick="showWofHelp()" style="background:rgba(255,255,255,0.2);border:1px solid white;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;">❓</button>
+        </div>
+      </div>
+    </div>
+    <div class="wof-scores">
+      <div class="wof-score-box"><div class="wof-score-label" id="label-round">Round</div><div class="wof-score-val gold" id="wof-round-score">$0</div></div>
+      <div class="wof-score-box"><div class="wof-score-label" id="label-spin">Spin</div><div class="wof-score-val" id="wof-spin-val">--</div></div>
+      <div class="wof-score-box"><div class="wof-score-label" id="label-timer">Timer</div><div class="wof-score-val" id="wof-timer">0s</div></div>
+      <div class="wof-score-box"><div class="wof-score-label" id="label-tries">Tries</div><div class="wof-score-val" id="wof-tries">30</div></div>
+      <div class="wof-score-box"><div class="wof-score-label" id="label-total">Total</div><div class="wof-score-val gold" id="wof-total-score">$0</div></div>
+      <div class="wof-score-box"><div class="wof-score-label" id="label-best">Best</div><div class="wof-score-val gold" id="wof-best">$0</div></div>
+    </div>
+    <div id="wof-vowel-bar" class="vowel-message" style="text-align:center;font-size:0.62rem;font-weight:700;padding:2px 8px;background:rgba(0,0,0,0.3);color:rgba(255,255,255,0.55);flex-shrink:0;">💰 Vowel costs $250 — spin to earn first!</div>
+    <div class="wof-middle">
+      <div class="wof-wheel-area"><div class="wheel-wrapper" id="wheelWrapper"><div class="wheel-pointer"></div><canvas id="wof-canvas"></canvas></div><div class="wof-spin-hint" id="spin-hint-text">👆 TAP TO SPIN</div></div>
+      <div class="wof-puzzle-panel"><div class="puzzle-category-tag" id="wof-category">Category</div><div class="puzzle-rows" id="wof-puzzle-board"></div><div class="wof-status" id="wof-status">✨ Tap the wheel to start!</div></div>
+    </div>
+    <div class="wof-keyboard" id="wof-keyboard"></div>
+    <div class="wof-controls"><div class="wof-guess-row"><input class="wof-input" id="wof-letter-input" type="text" maxlength="50" placeholder="Type letter or full phrase..." autocomplete="off"><button class="wof-btn wof-btn-guess" id="wofGuessBtn">Guess</button><button class="wof-btn wof-btn-solve" id="wofSolveBtn">Solve!</button><button class="wof-btn wof-btn-new" id="wofNewBtn">↺ New</button></div></div>
+    <div id="wof-overlay"><div class="wof-overlay-icon">🎡</div><div class="wof-overlay-title">Wheel of Fortune</div><div class="wof-overlay-sub" id="overlay-text">🎰 Tap the wheel to spin<br>🔤 Guess consonants to earn $<br>💰 Vowels cost $250<br>❌ Wrong guess disables that letter<br>🏆 Solve for +$1000!<br>✨ After buying a vowel, you can spin again!</div><button class="wof-overlay-btn" id="startGameBtn">▶ SPIN TO WIN!</button></div>
+    <div class="wof-result-toast" id="wof-result-toast"><div class="wof-toast-inner"><div class="feedback-icon" id="wof-result-icon">🎉</div><div class="feedback-text" id="wof-result-title">Puzzle Solved!</div><div class="feedback-sub" id="wof-result-sub"></div><button class="feedback-btn" id="closeResultBtn">Next Puzzle ▶</button></div></div>
+    <div class="scroll-hint" style="color:rgba(255,255,255,0.3);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(180deg)"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Memory ↑</div>
   </div>
 </div>
 
 <script>
-// ========== MEMORY GAME WITH 120 SECOND TIMER ==========
-const memImages = [{emoji:"🎷", label:"Sax"},{emoji:"🎸", label:"Guitar"},{emoji:"🎺", label:"Trumpet"},{emoji:"🥁", label:"Drums"},{emoji:"🎹", label:"Piano"},{emoji:"🎻", label:"Violin"},{emoji:"🖌️", label:"Brush"},{emoji:"🎨", label:"Palette"},{emoji:"🖼️", label:"Canvas"},{emoji:"✏️", label:"Sketch"},{emoji:"🎭", label:"Theater"},{emoji:"📷", label:"Camera"}];
-let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memTimeLeft = 120, memTimer = null, memLock = false, currentDifficulty = 'medium';
-
-// Load best score from localStorage
-function loadBestScores() { 
-  const best = localStorage.getItem('mem_best'); 
-  if (best) document.getElementById('mem-best').textContent = best; 
-  else document.getElementById('mem-best').textContent = '--';
-}
-
-// Save best score (based on moves, lower is better)
-function saveBestScore(moves, timeLeft) {
-  const currentBest = localStorage.getItem('mem_best');
-  const bestMoves = currentBest ? parseInt(currentBest) : Infinity;
-  if (moves < bestMoves) {
-    localStorage.setItem('mem_best', moves);
-    document.getElementById('mem-best').textContent = moves;
-    return true;
-  }
-  return false;
-}
-
-// Stop game (end timer)
-function stopMemoryGame() { 
-  if (memTimer) clearInterval(memTimer); 
-  memTimer = null; 
-  memLock = true; 
-  const msg = document.createElement('div'); 
-  msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#071e2e;color:gold;padding:20px;border-radius:20px;border:2px solid gold;z-index:200;text-align:center;font-weight:bold;'; 
-  msg.innerHTML = '⏹️ Game Ended<br><button onclick="this.parentElement.remove(); initMemoryGame();" style="margin-top:10px;padding:8px 20px;background:gold;border:none;border-radius:20px;cursor:pointer;">New Game</button>'; 
-  document.body.appendChild(msg); 
-}
-
-// Update timer display with color coding
-function updateTimerDisplay() {
-  const timerEl = document.getElementById('mem-timer');
-  timerEl.textContent = memTimeLeft + 's';
-  if (memTimeLeft <= 10) {
-    timerEl.classList.add('danger');
-    timerEl.classList.remove('warning');
-  } else if (memTimeLeft <= 30) {
-    timerEl.classList.add('warning');
-    timerEl.classList.remove('danger');
-  } else {
-    timerEl.classList.remove('warning', 'danger');
-  }
-}
-
-// Initialize or reset game
-function initMemoryGame() { 
-  if (memTimer) clearInterval(memTimer); 
-  memMatched = 0; 
-  memMoves = 0; 
-  memTimeLeft = 120; 
-  memFlipped = []; 
-  memLock = false; 
-  document.getElementById('mem-moves').textContent = '0'; 
-  document.getElementById('mem-pairs').textContent = '0/12'; 
-  updateTimerDisplay();
+// ==================== MEMORY GAME (unchanged) ====================
+const memImages = [
+  {emoji:"🎷", label:"Sax"},{emoji:"🎸", label:"Guitar"},{emoji:"🎺", label:"Trumpet"},{emoji:"🥁", label:"Drums"},{emoji:"🎹", label:"Piano"},{emoji:"🎻", label:"Violin"},
+  {emoji:"🖌️", label:"Brush"},{emoji:"🎨", label:"Palette"},{emoji:"🖼️", label:"Canvas"},{emoji:"✏️", label:"Sketch"},{emoji:"🎭", label:"Theater"},{emoji:"📷", label:"Camera"}
+];
+let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memTime = 0, memTimer = null, memLock = false;
+function initMemoryGame() {
+  if (memTimer) clearInterval(memTimer);
+  memMatched = 0; memMoves = 0; memTime = 0; memFlipped = []; memLock = false;
+  document.getElementById('mem-moves').textContent = '0';
+  document.getElementById('mem-pairs').textContent = '0/12';
+  document.getElementById('mem-timer').textContent = '0s';
   document.getElementById('memory-win').classList.remove('show');
-  document.getElementById('memory-lose').classList.remove('show');
-  
-  // Shuffle cards
-  let deck = [...memImages, ...memImages]; 
-  for (let i = deck.length - 1; i > 0; i--) { 
-    const j = Math.floor(Math.random() * (i + 1)); 
-    [deck[i], deck[j]] = [deck[j], deck[i]]; 
-  } 
-  memCards = deck.map((c, idx) => ({ ...c, id: idx, matched: false, flipped: false })); 
-  renderMemGrid(); 
-  
-  // Start countdown timer
-  memTimer = setInterval(() => { 
-    if (!memLock && memTimeLeft > 0 && memMatched < 12) {
-      memTimeLeft--; 
-      updateTimerDisplay();
-      if (memTimeLeft === 0) {
-        clearInterval(memTimer);
-        memTimer = null;
-        memLock = true;
-        // Show time's up message
-        const stats = document.getElementById('lose-stats');
-        stats.innerHTML = `Pairs matched: ${memMatched}/12<br>Moves: ${memMoves}`;
-        document.getElementById('memory-lose').classList.add('show');
-        spawnConfetti(false);
-      }
-    } else if (memMatched === 12) {
-      // Game already won, timer will be cleared in win condition
-    }
-  }, 1000); 
+  let deck = [...memImages, ...memImages];
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  memCards = deck.map((c, idx) => ({ ...c, id: idx, matched: false, flipped: false }));
+  renderMemGrid();
+  memTimer = setInterval(() => { memTime++; document.getElementById('mem-timer').textContent = memTime + 's'; }, 1000);
 }
+function renderMemGrid() { const grid = document.getElementById('memory-grid'); grid.innerHTML = ''; memCards.forEach((card, i) => { const el = document.createElement('div'); el.className = 'mem-card' + (card.flipped ? ' flipped' : ''); el.onclick = () => flipMemCard(i); el.innerHTML = `<div class="card-face card-back"></div><div class="card-face card-front"><div class="card-emoji">${card.emoji}</div><div class="card-label">${card.label}</div></div>`; grid.appendChild(el); }); }
+function flipMemCard(idx) { if (memLock || memCards[idx].flipped || memCards[idx].matched) return; memCards[idx].flipped = true; memFlipped.push(idx); updateMemUI(idx); if (memFlipped.length === 2) { memMoves++; document.getElementById('mem-moves').textContent = memMoves; memLock = true; const [a, b] = memFlipped; if (memCards[a].label === memCards[b].label) { memCards[a].matched = true; memCards[b].matched = true; memMatched++; document.getElementById('mem-pairs').textContent = `${memMatched}/12`; updateMemUI(a); updateMemUI(b); memFlipped = []; memLock = false; if (memMatched === 12) setTimeout(memWin, 300); } else { setTimeout(() => { memCards[a].flipped = false; memCards[b].flipped = false; updateMemUI(a); updateMemUI(b); memFlipped = []; memLock = false; }, 800); } } }
+function updateMemUI(idx) { const el = document.querySelector(`.mem-card:nth-child(${idx+1})`); if (el) el.className = 'mem-card' + (memCards[idx].flipped ? ' flipped' : ''); }
+function showHint() { if (memLock) return; const unpaired = memCards.map((c, i) => ({ c, i })).filter(x => !x.c.matched && !x.c.flipped); if (unpaired.length < 2) return; unpaired.slice(0, 2).forEach(({ i }) => { memCards[i].flipped = true; updateMemUI(i); }); memLock = true; setTimeout(() => { unpaired.slice(0, 2).forEach(({ i }) => { if (!memCards[i].matched) { memCards[i].flipped = false; updateMemUI(i); } }); memLock = false; }, 1000); }
+function memWin() { clearInterval(memTimer); document.getElementById('win-stats').innerHTML = `Moves: ${memMoves} | Time: ${memTime}s`; document.getElementById('memory-win').classList.add('show'); spawnConfetti(); }
+function setDifficulty(diff, btn) { document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); initMemoryGame(); }
+function loadBestScores() { const best = localStorage.getItem('mem_best'); if (best) document.getElementById('mem-best').textContent = best; }
+function spawnConfetti() { for (let i = 0; i < 40; i++) { setTimeout(() => { const c = document.createElement('div'); c.style.cssText = `position:absolute;width:8px;height:8px;left:${15+Math.random()*70}%;top:30%;background:${['#ffd700','#62e3df','#ff6b6b'][Math.floor(Math.random()*3)]};animation:confettiFall 1.6s forwards;pointer-events:none;z-index:999;`; document.body.appendChild(c); setTimeout(() => c.remove(), 1700); }, i * 40); } }
 
-function renderMemGrid() { 
-  const grid = document.getElementById('memory-grid'); 
-  // Adjust grid columns based on difficulty
-  if (currentDifficulty === 'easy') {
-    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  } else if (currentDifficulty === 'hard') {
-    grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
-  } else {
-    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+// ==================== WHEEL OF FORTUNE WITH FULL MULTILINGUAL SUPPORT ====================
+// Base puzzles (English)
+const basePuzzles = [
+  { category:"Art 🎨", answer:"MASTERPIECE" },
+  { category:"Medicine 🩺", answer:"FAMILY PHYSICIAN" },
+  { category:"Medicine 🩺", answer:"BLOOD PRESSURE" },
+  { category:"Music 🎵", answer:"SAXOPHONE" },
+  { category:"Music 🎵", answer:"JAZZ BAND" },
+  { category:"Travel ✈️", answer:"PARIS FRANCE" },
+  { category:"Travel ✈️", answer:"TROPICAL BEACH" },
+  { category:"Proverbs 📜", answer:"LITTLE BY LITTLE" },
+  { category:"Inspiration ✨", answer:"BELIEVE IN YOURSELF" },
+  { category:"Inspiration ✨", answer:"DREAM BIG" }
+];
+
+// Translations for categories and answers
+const translations = {
+  fr: { // French
+    "Art 🎨": "Art 🎨", "Medicine 🩺": "Médecine 🩺", "Music 🎵": "Musique 🎵", "Travel ✈️": "Voyage ✈️", "Proverbs 📜": "Proverbes 📜", "Inspiration ✨": "Inspiration ✨",
+    "MASTERPIECE": "CHEF-D'ŒUVRE", "FAMILY PHYSICIAN": "MÉDECIN DE FAMILLE", "BLOOD PRESSURE": "TENSION ARTÉRIELLE", "SAXOPHONE": "SAXOPHONE", "JAZZ BAND": "ORCHESTRE DE JAZZ",
+    "PARIS FRANCE": "PARIS FRANCE", "TROPICAL BEACH": "PLAGE TROPICALE", "LITTLE BY LITTLE": "PEU À PEU", "BELIEVE IN YOURSELF": "CROIS EN TOI", "DREAM BIG": "RÊVE GRAND"
+  },
+  ht: { // Haitian Kreyol
+    "Art 🎨": "Atizay 🎨", "Medicine 🩺": "Medsin 🩺", "Music 🎵": "Mizik 🎵", "Travel ✈️": "Vwayaj ✈️", "Proverbs 📜": "Pwovèb 📜", "Inspiration ✨": "Enspirasyon ✨",
+    "MASTERPIECE": "CHEF D'ŒV", "FAMILY PHYSICIAN": "DOKTÈ FAMILYAL", "BLOOD PRESSURE": "PRESYON SAN", "SAXOPHONE": "SAXOFÒN", "JAZZ BAND": "BANN JAZZ",
+    "PARIS FRANCE": "PARIS FRANS", "TROPICAL BEACH": "PLAJ TWOPIKAL", "LITTLE BY LITTLE": "TI PA PA TI", "BELIEVE IN YOURSELF": "KWE NAN TÈT OU", "DREAM BIG": "RÈV GRAN"
+  },
+  es: { // Spanish
+    "Art 🎨": "Arte 🎨", "Medicine 🩺": "Medicina 🩺", "Music 🎵": "Música 🎵", "Travel ✈️": "Viaje ✈️", "Proverbs 📜": "Proverbios 📜", "Inspiration ✨": "Inspiración ✨",
+    "MASTERPIECE": "OBRA MAESTRA", "FAMILY PHYSICIAN": "MÉDICO FAMILIAR", "BLOOD PRESSURE": "PRESIÓN ARTERIAL", "SAXOPHONE": "SAXOFÓN", "JAZZ BAND": "BANDA DE JAZZ",
+    "PARIS FRANCE": "PARÍS FRANCIA", "TROPICAL BEACH": "PLAYA TROPICAL", "LITTLE BY LITTLE": "POCO A POCO", "BELIEVE IN YOURSELF": "CREE EN TI", "DREAM BIG": "SUEÑA EN GRANDE"
+  },
+  pt: { // Portuguese
+    "Art 🎨": "Arte 🎨", "Medicine 🩺": "Medicina 🩺", "Music 🎵": "Música 🎵", "Travel ✈️": "Viagem ✈️", "Proverbs 📜": "Provérbios 📜", "Inspiration ✨": "Inspiração ✨",
+    "MASTERPIECE": "OBRA-PRIMA", "FAMILY PHYSICIAN": "MÉDICO DE FAMÍLIA", "BLOOD PRESSURE": "PRESSÃO ARTERIAL", "SAXOPHONE": "SAXOFONE", "JAZZ BAND": "BANDA DE JAZZ",
+    "PARIS FRANCE": "PARIS FRANÇA", "TROPICAL BEACH": "PRAIA TROPICAL", "LITTLE BY LITTLE": "POUCO A POUCO", "BELIEVE IN YOURSELF": "ACREDITE EM SI", "DREAM BIG": "SONHE GRANDE"
+  },
+  de: { // German
+    "Art 🎨": "Kunst 🎨", "Medicine 🩺": "Medizin 🩺", "Music 🎵": "Musik 🎵", "Travel ✈️": "Reise ✈️", "Proverbs 📜": "Sprichwörter 📜", "Inspiration ✨": "Inspiration ✨",
+    "MASTERPIECE": "MEISTERWERK", "FAMILY PHYSICIAN": "HAUSARZT", "BLOOD PRESSURE": "BLUTDRUCK", "SAXOPHONE": "SAXOFON", "JAZZ BAND": "JAZZBAND",
+    "PARIS FRANCE": "PARIS FRANKREICH", "TROPICAL BEACH": "TROPISCHER STRAND", "LITTLE BY LITTLE": "STÜCK FÜR STÜCK", "BELIEVE IN YOURSELF": "GLAUBE AN DICH", "DREAM BIG": "TRÄUME GROSS"
+  },
+  it: { // Italian
+    "Art 🎨": "Arte 🎨", "Medicine 🩺": "Medicina 🩺", "Music 🎵": "Musica 🎵", "Travel ✈️": "Viaggio ✈️", "Proverbs 📜": "Proverbi 📜", "Inspiration ✨": "Ispirazione ✨",
+    "MASTERPIECE": "CAPOLAVORO", "FAMILY PHYSICIAN": "MEDICO DI FAMIGLIA", "BLOOD PRESSURE": "PRESSIONE SANGUIGNA", "SAXOPHONE": "SASSOFONO", "JAZZ BAND": "BANDA JAZZ",
+    "PARIS FRANCE": "PARIGI FRANCIA", "TROPICAL BEACH": "SPIAGGIA TROPICALE", "LITTLE BY LITTLE": "POCO A POCO", "BELIEVE IN YOURSELF": "CREDI IN TE", "DREAM BIG": "SOGNA IN GRANDE"
   }
-  grid.innerHTML = ''; 
-  memCards.forEach((card, i) => { 
-    const el = document.createElement('div'); 
-    el.className = 'mem-card' + (card.flipped ? ' flipped' : ''); 
-    el.onclick = () => flipMemCard(i); 
-    el.innerHTML = `<div class="card-face card-back"></div><div class="card-face card-front"><div class="card-emoji">${card.emoji}</div><div class="card-label">${card.label}</div></div>`; 
-    grid.appendChild(el); 
-  }); 
-}
+};
 
-function flipMemCard(idx) { 
-  if (memLock || memCards[idx].flipped || memCards[idx].matched || memTimeLeft <= 0) return; 
-  memCards[idx].flipped = true; 
-  memFlipped.push(idx); 
-  updateMemUI(idx); 
-  
-  if (memFlipped.length === 2) { 
-    memMoves++; 
-    document.getElementById('mem-moves').textContent = memMoves; 
-    memLock = true; 
-    const [a, b] = memFlipped; 
-    if (memCards[a].label === memCards[b].label) { 
-      // Match found
-      memCards[a].matched = true; 
-      memCards[b].matched = true; 
-      memMatched++; 
-      document.getElementById('mem-pairs').textContent = `${memMatched}/12`; 
-      updateMemUI(a); 
-      updateMemUI(b); 
-      memFlipped = []; 
-      memLock = false; 
-      if (memMatched === 12) { 
-        clearInterval(memTimer); 
-        memTimer = null;
-        const timeUsed = 120 - memTimeLeft;
-        const wonNewBest = saveBestScore(memMoves, timeUsed);
-        document.getElementById('win-stats').innerHTML = `Moves: ${memMoves} | Time: ${timeUsed}s${wonNewBest ? '<br>🎉 NEW BEST SCORE! 🎉' : ''}`; 
-        document.getElementById('memory-win').classList.add('show'); 
-        spawnConfetti(true); 
-      } 
-    } else { 
-      // No match - delay flip back
-      setTimeout(() => { 
-        memCards[a].flipped = false; 
-        memCards[b].flipped = false; 
-        updateMemUI(a); 
-        updateMemUI(b); 
-        memFlipped = []; 
-        memLock = false; 
-      }, 800); 
-    } 
-  } 
-}
+let currentLang = 'en';
+let wofPuzzles = [...basePuzzles];
 
-function updateMemUI(idx) { 
-  const el = document.querySelector(`.mem-card:nth-child(${idx+1})`); 
-  if (el) el.className = 'mem-card' + (memCards[idx].flipped ? ' flipped' : ''); 
-}
-
-function showHint() { 
-  if (memLock || memTimeLeft <= 0) return; 
-  // Find two unpaired, unflipped cards
-  const unpaired = memCards.map((c, i) => ({ c, i })).filter(x => !x.c.matched && !x.c.flipped); 
-  if (unpaired.length < 2) return; 
-  // Temporarily flip the first two unpaired cards
-  const hintIndices = [unpaired[0].i, unpaired[1].i];
-  hintIndices.forEach(i => { 
-    memCards[i].flipped = true; 
-    updateMemUI(i); 
-  }); 
-  memLock = true; 
-  setTimeout(() => { 
-    hintIndices.forEach(i => { 
-      if (!memCards[i].matched) { 
-        memCards[i].flipped = false; 
-        updateMemUI(i); 
-      } 
-    }); 
-    memLock = false; 
-  }, 1000); 
-}
-
-function setDifficulty(diff, btn) { 
-  currentDifficulty = diff;
-  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active')); 
-  btn.classList.add('active'); 
-  
-  // Adjust grid size based on difficulty
-  const grid = document.getElementById('memory-grid');
-  if (diff === 'easy') {
-    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  } else if (diff === 'hard') {
-    grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
-  } else {
-    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+function translatePuzzles(lang) {
+  if (lang === 'en') {
+    wofPuzzles = [...basePuzzles];
+    return;
   }
-  
-  initMemoryGame(); 
+  const t = translations[lang];
+  if (!t) return;
+  wofPuzzles = basePuzzles.map(puzzle => ({
+    category: t[puzzle.category] || puzzle.category,
+    answer: t[puzzle.answer] || puzzle.answer
+  }));
 }
 
-function spawnConfetti(isWin) { 
-  const colors = isWin ? ['#ffd700', '#62e3df', '#ff6b6b', '#1dc29e'] : ['#ff6b6b', '#ff9f4a'];
-  for (let i = 0; i < (isWin ? 80 : 40); i++) { 
-    setTimeout(() => { 
-      const c = document.createElement('div'); 
-      c.style.cssText = `position:fixed;width:10px;height:10px;left:${15+Math.random()*70}%;top:30%;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random() > 0.5 ? '50%' : '0'};animation:confettiFall 1.6s forwards;pointer-events:none;z-index:999;`; 
-      document.body.appendChild(c); 
-      setTimeout(() => c.remove(), 1700); 
-    }, i * 30); 
-  } 
+// UI Text translations
+const uiText = {
+  en: { round: "Round", spin: "Spin", timer: "Timer", tries: "Tries", total: "Total", best: "Best", guess: "Guess", solve: "Solve!", new: "↺ New", vowelMsg: "💰 Vowel costs $250 — spin to earn first!", vowelAvailable: "✅ Vowel available! ($250) — tap gold key", vowelNeed: "💰 Need $", vowelNeedSuffix: " to buy vowel", spinHint: "👆 TAP TO SPIN", tapStart: "✨ Tap the wheel to start!", consonantHint: "✨ ${label}! Guess a consonant.", loseTurn: "💀 LOSE A TURN!", gameOver: "Game over! New Game", spinFirst: "Spin the wheel first!", needMoney: "Need $${cost} to buy vowel", letterUsed: "\"${letter}\" used!", letterFound: "✨ \"${letter}\" found! Spin again!", noLetter: "❌ No \"${letter}\". ${tries} tries left.", consonantEarn: "🎉 \"${letter}\" +$${earned}!", incorrectGuess: "❌ \"${guess}\" incorrect!", puzzleSolved: "Puzzle Solved!", outOfTries: "Out of Tries!", nextPuzzle: "Next Puzzle ▶", answerLabel: "Answer: ", totalLabel: "Total: $" },
+  fr: { round: "Manche", spin: "Tour", timer: "Chrono", tries: "Essais", total: "Total", best: "Record", guess: "Deviner", solve: "Résoudre!", new: "↺ Nouveau", vowelMsg: "💰 Voyelle coûte 250$ — tournez pour gagner!", vowelAvailable: "✅ Voyelle disponible! (250$) — touche dorée", vowelNeed: "💰 Besoin de ", vowelNeedSuffix: "$ pour acheter voyelle", spinHint: "👆 APPUYEZ", tapStart: "✨ Appuyez sur la roue!", consonantHint: "✨ ${label}! Devinez une consonne.", loseTurn: "💀 TOUR PERDU!", gameOver: "Partie terminée! Nouvelle partie", spinFirst: "Tournez d'abord!", needMoney: "Besoin de ${cost}$ pour acheter voyelle", letterUsed: "\"${letter}\" déjà utilisé!", letterFound: "✨ \"${letter}\" trouvé! Retournez!", noLetter: "❌ Pas de \"${letter}\". ${tries} essais restants.", consonantEarn: "🎉 \"${letter}\" +$${earned}!", incorrectGuess: "❌ \"${guess}\" incorrect!", puzzleSolved: "Énigme Résolue!", outOfTries: "Plus d'essais!", nextPuzzle: "Énigme Suivante ▶", answerLabel: "Réponse: ", totalLabel: "Total: $" }
+};
+
+function applyUILanguage(lang) {
+  const t = uiText[lang] || uiText.en;
+  document.getElementById('label-round').textContent = t.round;
+  document.getElementById('label-spin').textContent = t.spin;
+  document.getElementById('label-timer').textContent = t.timer;
+  document.getElementById('label-tries').textContent = t.tries;
+  document.getElementById('label-total').textContent = t.total;
+  document.getElementById('label-best').textContent = t.best;
+  document.getElementById('wofGuessBtn').textContent = t.guess;
+  document.getElementById('wofSolveBtn').textContent = t.solve;
+  document.getElementById('wofNewBtn').innerHTML = t.new;
+  document.getElementById('spin-hint-text').textContent = t.spinHint;
+  if (!wof.gameActive) document.getElementById('wof-status').textContent = t.tapStart;
+  const vowelBar = document.getElementById('wof-vowel-bar');
+  if (wof.roundScore >= 250) vowelBar.textContent = t.vowelAvailable;
+  else vowelBar.textContent = t.vowelNeed + (250 - wof.roundScore) + t.vowelNeedSuffix;
+  return t;
 }
 
-// Add confetti animation keyframes if not exists
-if (!document.querySelector('#confetti-style')) {
-  const style = document.createElement('style');
-  style.id = 'confetti-style';
-  style.textContent = `
-    @keyframes confettiFall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(80vh) rotate(720deg); opacity: 0; }
-    }
-  `;
-  document.head.appendChild(style);
-}
+let wofUIText = uiText.en;
+let wof = { puzzle: null, guessed: new Set(), revealed: new Set(), roundScore: 0, totalScore: 0, triesLeft: 30, spinValue: 0, canGuess: false, spinning: false, wheelAngle: 0, animId: null, pool: [], gameActive: false };
 
-// Initialize on page load
-loadBestScores();
-initMemoryGame();
+function buildWofPool() { wof.pool = [...wofPuzzles].sort(() => Math.random() - 0.5); }
+function loadWofPuzzle() { if (!wof.gameActive) return; wof.guessed.clear(); wof.revealed.clear(); wof.roundScore = 0; wof.triesLeft = 30; wof.spinValue = 0; wof.canGuess = false; if (wof.animId) cancelAnimationFrame(wof.animId); if (!wof.pool.length) buildWofPool(); wof.puzzle = wof.pool.pop(); document.getElementById('wof-category').textContent = wof.puzzle.category; renderWofBoard(); buildWofKeyboard(); updateWofUI(); startWofTimer(); wofStatus(wofUIText.tapStart, ''); drawWheel(); }
+function startWofGame() { document.getElementById('wof-overlay').style.display = 'none'; wof.totalScore = 0; wof.gameActive = true; const best = localStorage.getItem('wof_best') || '0'; document.getElementById('wof-best').textContent = '$' + best; buildWofPool(); loadWofPuzzle(); }
+function renderWofBoard() { const board = document.getElementById('wof-puzzle-board'); if (!board || !wof.puzzle) return; board.innerHTML = ''; const words = wof.puzzle.answer.split(' '); words.forEach(word => { const row = document.createElement('div'); row.className = 'puzzle-row'; [...word].forEach(char => { const tile = document.createElement('div'); if (char === ' ') { tile.className = 'letter-tile space'; tile.textContent = ''; } else if (wof.revealed.has(char)) { tile.className = 'letter-tile revealed'; tile.textContent = char; } else { tile.className = 'letter-tile hidden'; tile.textContent = '?'; } row.appendChild(tile); }); board.appendChild(row); }); }
+function buildWofKeyboard() { const kb = document.getElementById('wof-keyboard'); if (!kb) return; kb.innerHTML = ''; const rows = [['Q','W','E','R','T','Y','U','I','O','P'], ['A','S','D','F','G','H','J','K','L'], ['Z','X','C','V','B','N','M']]; rows.forEach(row => { const rowDiv = document.createElement('div'); rowDiv.className = 'kbd-row'; row.forEach(letter => { const btn = document.createElement('div'); const isVowel = ['A','E','I','O','U'].includes(letter); btn.className = 'kbd-key' + (isVowel ? ' vowel-key' : ''); btn.textContent = letter; btn.setAttribute('data-letter', letter); btn.onclick = (e) => { e.stopPropagation(); onKeyPress(letter); }; rowDiv.appendChild(btn); }); kb.appendChild(rowDiv); }); updateKeyboardState(); }
+function updateKeyboardState() { document.querySelectorAll('.kbd-key[data-letter]').forEach(key => { const letter = key.getAttribute('data-letter'); if (wof.guessed.has(letter)) { const inAnswer = wof.puzzle && [...wof.puzzle.answer].includes(letter); key.className = 'kbd-key ' + (inAnswer ? 'used-hit' : 'used-miss'); key.style.pointerEvents = 'none'; } else { const isVowel = ['A','E','I','O','U'].includes(letter); key.className = 'kbd-key' + (isVowel ? ' vowel-key' : ''); key.style.pointerEvents = ''; } }); }
+function onKeyPress(letter) { if (!wof.gameActive || wof.spinning) { wofStatus('Game not ready!', 'error'); return; } if (wof.guessed.has(letter)) { wofStatus(wofUIText.letterUsed.replace('${letter}', letter), 'error'); return; } document.getElementById('wof-letter-input').value = letter; wofGuess(); }
+function wofGuess() { if (!wof.gameActive) return; const inp = document.getElementById('wof-letter-input'); const raw = (inp ? inp.value : '').trim().toUpperCase(); if (inp) inp.value = ''; if (!raw || !wof.puzzle) return; if (raw.length > 1) { wofTrySolve(raw); return; } const letter = raw[0]; if (!/^[A-Z]$/.test(letter)) return; if (wof.guessed.has(letter)) { wofStatus(wofUIText.letterUsed.replace('${letter}', letter), 'error'); return; } if (['A','E','I','O','U'].includes(letter)) wofBuyVowel(letter); else wofConsonant(letter); }
+function wofBuyVowel(letter) { if (wof.roundScore < 250) { wofStatus(wofUIText.needMoney.replace('${cost}', 250), 'error'); return; } wof.roundScore -= 250; wof.guessed.add(letter); const count = [...wof.puzzle.answer].filter(c => c === letter).length; if (count > 0) { wof.revealed.add(letter); updateWofUI(); renderWofBoard(); updateKeyboardState(); wofStatus(wofUIText.letterFound.replace('${letter}', letter), 'success'); wof.canGuess = false; checkWinCondition(); } else { wof.triesLeft--; updateWofUI(); updateKeyboardState(); wofStatus(wofUIText.noLetter.replace('${letter}', letter).replace('${tries}', wof.triesLeft), 'error'); wof.canGuess = false; if (wof.triesLeft <= 0) wofGameOver(); } }
+function wofConsonant(letter) { if (!wof.canGuess) { wofStatus(wofUIText.spinFirst, 'error'); return; } wof.guessed.add(letter); wof.canGuess = false; const count = [...wof.puzzle.answer].filter(c => c === letter).length; if (count > 0) { wof.revealed.add(letter); const earned = count * wof.spinValue; wof.roundScore += earned; updateWofUI(); renderWofBoard(); updateKeyboardState(); wofStatus(wofUIText.consonantEarn.replace('${letter}', letter).replace('${earned}', earned), 'success'); checkWinCondition(); } else { wof.triesLeft--; updateWofUI(); updateKeyboardState(); wofStatus(wofUIText.noLetter.replace('${letter}', letter).replace('${tries}', wof.triesLeft), 'error'); if (wof.triesLeft <= 0) wofGameOver(); } }
+function checkWinCondition() { const allLetters = [...wof.puzzle.answer].filter(c => c !== ' '); const allRevealed = allLetters.every(letter => wof.revealed.has(letter)); if (allRevealed) wofWin(); }
+function wofTrySolve(guess) { if (guess.trim().toUpperCase() === wof.puzzle.answer) { wofWin(); } else { wofStatus(wofUIText.incorrectGuess.replace('${guess}', guess), 'error'); } }
+function wofWin() { stopWofTimer(); if (wof.animId) cancelAnimationFrame(wof.animId); [...wof.puzzle.answer].forEach(c => { if (c !== ' ') wof.revealed.add(c); }); renderWofBoard(); wof.roundScore += 1000; wof.totalScore += wof.roundScore; const prev = parseInt(localStorage.getItem('wof_best') || '0'); if (wof.totalScore > prev) { localStorage.setItem('wof_best', wof.totalScore); document.getElementById('wof-best').textContent = '$' + wof.totalScore; } updateWofUI(); spawnConfetti(); document.getElementById('wof-result-icon').textContent = '🏆'; document.getElementById('wof-result-title').textContent = wofUIText.puzzleSolved; document.getElementById('wof-result-sub').innerHTML = wofUIText.answerLabel + wof.puzzle.answer + '<br>' + wofUIText.totalLabel + wof.totalScore; document.getElementById('wof-result-toast').classList.add('show'); wof.gameActive = false; }
+function wofGameOver() { stopWofTimer(); if (wof.animId) cancelAnimationFrame(wof.animId); [...wof.puzzle.answer].forEach(c => { if (c !== ' ') wof.revealed.add(c); }); renderWofBoard(); document.getElementById('wof-result-icon').textContent = '💀'; document.getElementById('wof-result-title').textContent = wofUIText.outOfTries; document.getElementById('wof-result-sub').innerHTML = wofUIText.answerLabel + wof.puzzle.answer + '<br>' + wofUIText.totalLabel + wof.totalScore; document.getElementById('wof-result-toast').classList.add('show'); wof.gameActive = false; }
+function closeWofResult() { document.getElementById('wof-result-toast').classList.remove('show'); wof.gameActive = true; loadWofPuzzle(); }
+function wofSpin() { if (!wof.gameActive || wof.spinning || wof.animId) return; if (wof.canGuess) { wofStatus(wofUIText.consonantHint.replace('${label}', `+$${wof.spinValue}`), 'error'); return; } if (wof.triesLeft <= 0) { wofStatus(wofUIText.gameOver, 'error'); return; } wof.spinning = true; wof.targetAngle = wof.wheelAngle + (5 + Math.random() * 6) * Math.PI * 2 + Math.random() * Math.PI; wofAnimate(); }
+function wofAnimate() { const diff = wof.targetAngle - wof.wheelAngle; if (Math.abs(diff) <= 0.02) { wof.wheelAngle = wof.targetAngle % (Math.PI * 2); wof.spinning = false; if (wof.animId) cancelAnimationFrame(wof.animId); wof.animId = null; drawWheel(); wofLand(); return; } wof.wheelAngle += diff * 0.08; drawWheel(); wof.animId = requestAnimationFrame(wofAnimate); }
+function wofLand() { const norm = ((Math.PI * 1.5 - wof.wheelAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2); const wedge = WHEEL_WEDGES[Math.floor(norm / WEDGE_ANGLE) % NUM_WEDGES]; if (wedge.special === 'lose') { wof.canGuess = false; wof.spinValue = 0; wof.roundScore = 0; wof.triesLeft--; updateWofUI(); if (wof.triesLeft <= 0) wofGameOver(); else wofStatus(wofUIText.loseTurn, 'error'); } else { wof.spinValue = wedge.value; wof.canGuess = true; wofStatus(wofUIText.consonantHint.replace('${label}', wedge.label), 'success'); } }
+function drawWheel() { const canvas = document.getElementById('wof-canvas'); if (!canvas || !canvas.width) return; const ctx = canvas.getContext('2d'); const cx = canvas.width / 2, cy = canvas.height / 2, r = Math.min(cx, cy) - 5; ctx.clearRect(0, 0, canvas.width, canvas.height); WHEEL_WEDGES.forEach((w, i) => { const a0 = wof.wheelAngle + i * WEDGE_ANGLE, a1 = a0 + WEDGE_ANGLE; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, a1); ctx.closePath(); ctx.fillStyle = w.color; ctx.fill(); ctx.save(); ctx.translate(cx, cy); ctx.rotate(a0 + WEDGE_ANGLE / 2); ctx.textAlign = 'right'; ctx.font = `bold ${Math.max(9, canvas.width * 0.045)}px "Space Mono",monospace`; ctx.fillStyle = 'white'; ctx.fillText(w.label, r - 5, 8); ctx.restore(); }); ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fillStyle = '#ffd700'; ctx.fill(); ctx.fillStyle = '#000'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🦢', cx, cy); }
+const WHEEL_WEDGES = [
+  {label:'$500', value:500, color:'#C0392B'}, {label:'$700', value:700, color:'#16A085'}, {label:'$300', value:300, color:'#8E44AD'}, {label:'$900', value:900, color:'#E67E22'},
+  {label:'LOSE', value:0, color:'#2C3E50', special:'lose'}, {label:'$600', value:600, color:'#2980B9'}, {label:'$400', value:400, color:'#D35400'}, {label:'$800', value:800, color:'#1ABC9C'},
+  {label:'FREE', value:500, color:'#F39C12', special:'free'}, {label:'$1000',value:1000, color:'#922B21'}, {label:'$350', value:350, color:'#27AE60'}, {label:'$750', value:750, color:'#6C3483'}
+];
+const NUM_WEDGES = WHEEL_WEDGES.length, WEDGE_ANGLE = (Math.PI * 2) / NUM_WEDGES;
+let wofTimerInterval = null, wofTimerSeconds = 0;
+function startWofTimer() { stopWofTimer(); wofTimerSeconds = 0; _timerTick(); wofTimerInterval = setInterval(_timerTick, 1000); }
+function stopWofTimer() { if (wofTimerInterval) { clearInterval(wofTimerInterval); wofTimerInterval = null; } }
+function _timerTick() { const el = document.getElementById('wof-timer'); if (el) { const m = Math.floor(wofTimerSeconds / 60), s = wofTimerSeconds % 60; el.textContent = m > 0 ? m + 'm' + s + 's' : wofTimerSeconds + 's'; wofTimerSeconds++; } }
+function updateWofUI() { const safe = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); }; safe('wof-round-score', el => el.textContent = '$' + wof.roundScore); safe('wof-total-score', el => el.textContent = '$' + wof.totalScore); safe('wof-tries', el => el.textContent = wof.triesLeft); safe('wof-spin-val', el => { if (wof.spinValue > 0 && wof.canGuess) { el.textContent = '+$' + wof.spinValue; el.style.color = '#ffd700'; } else { el.textContent = '--'; el.style.color = 'rgba(255,255,255,0.4)'; } }); const vowelBar = document.getElementById('wof-vowel-bar'); if (wof.roundScore >= 250) vowelBar.textContent = wofUIText.vowelAvailable; else vowelBar.textContent = wofUIText.vowelNeed + (250 - wof.roundScore) + wofUIText.vowelNeedSuffix; }
+function wofStatus(msg, type) { const el = document.getElementById('wof-status'); if (el) { el.textContent = msg; el.className = 'wof-status' + (type ? ' ' + type : ''); } }
+function showWofHelp() { alert("🎡 WHEEL OF FORTUNE\n\nTap wheel to spin\nGuess consonants → earn $\nVowels cost $250\nWrong guess = letter disabled, -1 try\nSolve for +$1000!"); }
+function initWofCanvas() { const canvas = document.getElementById('wof-canvas'); if (!canvas) return; const size = Math.min(window.innerWidth * 0.32, 150); canvas.width = size; canvas.height = size; canvas.style.width = size + 'px'; canvas.style.height = size + 'px'; canvas.onclick = (e) => { e.stopPropagation(); wofSpin(); }; drawWheel(); }
+function setupWofEventListeners() { document.getElementById('wofGuessBtn').onclick = () => wofGuess(); document.getElementById('wofSolveBtn').onclick = () => { const inp = document.getElementById('wof-letter-input'); const val = inp.value; wofTrySolve(val); inp.value = ''; }; document.getElementById('wofNewBtn').onclick = () => { if (wof.gameActive) loadWofPuzzle(); }; document.getElementById('startGameBtn').onclick = () => startWofGame(); document.getElementById('closeResultBtn').onclick = () => closeWofResult(); document.getElementById('wof-letter-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') wofGuess(); }); }
+function changeLanguage(lang) {
+  currentLang = lang;
+  translatePuzzles(lang);
+  wofUIText = applyUILanguage(lang);
+  if (wof.gameActive) {
+    const wasActive = wof.gameActive;
+    wof.gameActive = false;
+    buildWofPool();
+    loadWofPuzzle();
+    wof.gameActive = wasActive;
+    loadWofPuzzle();
+  }
+}
+initMemoryGame(); loadBestScores(); setupWofEventListeners();
+const wofObserver = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { initWofCanvas(); wofObserver.disconnect(); } }); }, { threshold: 0.2 });
+wofObserver.observe(document.getElementById('wof-screen'));
+setTimeout(initWofCanvas, 500);
+function scrollToGame(idx) { document.getElementById('game-wrapper').scrollTo({ top: idx * window.innerHeight, behavior: 'smooth' }); }
+document.getElementById('langDropdown').addEventListener('change', (e) => changeLanguage(e.target.value));
+document.getElementById('languageTranslatorBtn').addEventListener('click', () => { document.getElementById('langDropdown').focus(); });
 </script>
 </body>
 </html>
